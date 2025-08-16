@@ -243,6 +243,19 @@ export default function AppleCatcherGame() {
   // React state - these trigger re-renders when they change
   const [score, setScore] = useState(0);               // Current score (mirrors Phaser state)
   const [gameOver, setGameOver] = useState(false);     // Is game over? (mirrors Phaser state)
+  const [gameStarted, setGameStarted] = useState(false); // Has the player started the game?
+
+  // Function to start the game - called when start button is clicked
+  const startGame = () => {
+    setGameStarted(true);         // Mark game as started
+    setScore(0);                  // Reset score
+    setGameOver(false);           // Reset game over status
+    
+    // Start the Phaser scene with our shared data
+    if (phaserGameRef.current && sceneRef.current) {
+      sceneRef.current.restart();  // Reset the game state in Phaser
+    }
+  };
 
   // Shared data object - this is passed to Phaser so both sides can communicate
   const gameData: GameData = {
@@ -252,13 +265,14 @@ export default function AppleCatcherGame() {
       sceneRef.current?.restart();   // Tell Phaser to restart the game
       setScore(0);                   // Reset React state
       setGameOver(false);            // Reset React state
+      setGameStarted(true);          // Keep game in started state for restart
     }
   };
 
   // useEffect - runs once when component mounts, sets up the Phaser game
   useEffect(() => {
     // Only create the game if we have a container div and haven't created it yet
-    if (gameRef.current && !phaserGameRef.current) {
+    if (gameRef.current && !phaserGameRef.current && gameStarted) {
       // Phaser game configuration object
       const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,              // Let Phaser choose WebGL or Canvas automatically
@@ -303,35 +317,71 @@ export default function AppleCatcherGame() {
         }
       };
     }
-  }, []); // Empty dependency array means this only runs once on mount
+  }, [gameStarted]); // Runs when gameStarted changes
 
   // JSX Return - The UI that React renders
   return (
     <div className="game-container">
-      {/* Top UI bar with score and controls info */}
-      <div className="game-ui">
-        {/* Score display card */}
-        <Card className="score-display">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🍎</span>
-            <div>
-              <p className="text-sm text-muted-foreground">Score</p>
-              <p className="text-2xl font-bold text-primary">{score}</p>
+      {/* Start Screen - only shows when game hasn't started yet */}
+      {!gameStarted && !gameOver && (
+        <div className="game-over-modal">
+          <Card className="p-8 max-w-md mx-4 text-center">
+            <div className="mb-6">
+              <div className="text-6xl mb-4">🍎</div>
+              <h2 className="text-3xl font-bold text-primary mb-2">Apple Catcher</h2>
+              <p className="text-muted-foreground">
+                Catch falling apples with your plate!<br />
+                Use arrow keys to move left and right.
+              </p>
             </div>
-          </div>
-        </Card>
-        
-        {/* Controls instruction card */}
-        <Card className="score-display">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">Controls</p>
-            <p className="text-xs">← → Arrow Keys</p>
-          </div>
-        </Card>
-      </div>
+            
+            <div className="space-y-4">
+              {/* Start button - begins the game */}
+              <Button 
+                onClick={startGame} 
+                size="lg" 
+                className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-300"
+              >
+                Start Game 🎮
+              </Button>
+              
+              <div className="text-xs text-muted-foreground">
+                <p>💡 Don't let any apples hit the ground!</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
 
-      {/* This div is where Phaser renders the actual game */}
-      <div ref={gameRef} className="rounded-lg overflow-hidden shadow-2xl border-4 border-white/20" />
+      {/* Game UI - only shows when game has started */}
+      {gameStarted && (
+        <>
+          {/* Top UI bar with score and controls info */}
+          <div className="game-ui">
+            {/* Score display card */}
+            <Card className="score-display">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🍎</span>
+                <div>
+                  <p className="text-sm text-muted-foreground">Score</p>
+                  <p className="text-2xl font-bold text-primary">{score}</p>
+                </div>
+              </div>
+            </Card>
+            
+            {/* Controls instruction card */}
+            <Card className="score-display">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">Controls</p>
+                <p className="text-xs">← → Arrow Keys</p>
+              </div>
+            </Card>
+          </div>
+
+          {/* This div is where Phaser renders the actual game */}
+          <div ref={gameRef} className="rounded-lg overflow-hidden shadow-2xl border-4 border-white/20" />
+        </>
+      )}
 
       {/* Game Over Modal - only shows when gameOver is true */}
       {gameOver && (
