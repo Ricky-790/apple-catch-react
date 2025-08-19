@@ -117,7 +117,8 @@ class GameScene extends Phaser.Scene {
 
     // Apple spawning logic - create new apples at intervals
     // time is the current game time, we compare it with when we last spawned an apple
-    if (time - this.lastAppleTime > this.appleInterval) {
+    // For the first apple, spawn immediately if lastAppleTime is 0
+    if (this.lastAppleTime === 0 || time - this.lastAppleTime > this.appleInterval) {
       this.spawnApple();                // Create a new apple
       this.lastAppleTime = time;        // Remember when we created this apple
       
