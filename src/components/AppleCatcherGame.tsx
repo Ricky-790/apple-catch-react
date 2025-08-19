@@ -247,14 +247,10 @@ export default function AppleCatcherGame() {
 
   // Function to start the game - called when start button is clicked
   const startGame = () => {
-    setGameStarted(true);         // Mark game as started
+    setGameStarted(true);         // Mark game as started (this triggers useEffect to create the Phaser game)
     setScore(0);                  // Reset score
     setGameOver(false);           // Reset game over status
-    
-    // Start the Phaser scene with our shared data
-    if (phaserGameRef.current && sceneRef.current) {
-      sceneRef.current.restart();  // Reset the game state in Phaser
-    }
+    // Note: No need to call restart() here since the game will be properly initialized by useEffect
   };
 
   // Shared data object - this is passed to Phaser so both sides can communicate
